@@ -1,6 +1,7 @@
 # Sztuczna-Inteligencja-Projekt
 
 Kacper Szponar 21306
+
 🎮 Steam Sale Optimizer: Optymalizacja Koszyka Zakupowego
 
 📌 O projekcie
@@ -13,15 +14,13 @@ Głównym celem projektu jest znalezienie idealnej kombinacji gier wideo, która
 
 Aby algorytmy mogły rozwiązać dylemat kupującego, rzeczywiste zmienne zostały zmapowane na parametry problemu plecakowego:
 
-Pojemność plecaka ($W$): Maksymalny budżet użytkownika przeznaczony na wyprzedaż (np. 200 PLN).
+Pojemność plecaka: Maksymalny budżet użytkownika przeznaczony na wyprzedaż (np. 200 PLN).
 
 Przedmioty: Baza dostępnych gier wideo na platformie Steam.
 
-Waga przedmiotu ($w_i$): Aktualna cena danej gry.
+Waga przedmiotu: Aktualna cena danej gry.
 
-Wartość przedmiotu ($v_i$): Wyliczony wskaźnik jakości gry. Zamiast subiektywnych opinii, metryka ta opiera się na odsetku pozytywnych recenzji oraz ich całkowitej liczbie, promując tytuły o ugruntowanej, świetnej reputacji.
-
-Formalnie, mając do dyspozycji $n$ gier, wprowadzamy zmienną decyzyjną $x_i \in \{0, 1\}$, która określa, czy decydujemy się na zakup gry $i$ (wartość 1), czy z niej rezygnujemy (wartość 0).
+Wartość przedmiotu: Wyliczony wskaźnik jakości gry. Zamiast subiektywnych opinii, metryka ta opiera się na odsetku pozytywnych recenzji oraz ich całkowitej liczbie, promując tytuły o ugruntowanej, świetnej reputacji.
 
 📊 Charakterystyka Danych
 
