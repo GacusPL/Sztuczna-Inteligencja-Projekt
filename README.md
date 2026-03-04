@@ -14,13 +14,13 @@ Głównym celem projektu jest znalezienie idealnej kombinacji gier wideo, która
 
 Aby algorytmy mogły rozwiązać dylemat kupującego, rzeczywiste zmienne zostały zmapowane na parametry problemu plecakowego:
 
-Pojemność plecaka: Maksymalny budżet użytkownika przeznaczony na wyprzedaż (np. 200 PLN).
+    -Pojemność plecaka: Maksymalny budżet użytkownika przeznaczony na wyprzedaż (np. 200 PLN).
 
-Przedmioty: Baza dostępnych gier wideo na platformie Steam.
+    -Przedmioty: Baza dostępnych gier wideo na platformie Steam.
 
-Waga przedmiotu: Aktualna cena danej gry.
+    -Waga przedmiotu: Aktualna cena danej gry.
 
-Wartość przedmiotu: Wyliczony wskaźnik jakości gry. Zamiast subiektywnych opinii, metryka ta opiera się na odsetku pozytywnych recenzji oraz ich całkowitej liczbie, promując tytuły o ugruntowanej, świetnej reputacji.
+    -Wartość przedmiotu: Wyliczony wskaźnik jakości gry. Zamiast subiektywnych opinii, metryka ta opiera się na odsetku pozytywnych recenzji oraz ich całkowitej liczbie, promując tytuły o ugruntowanej, świetnej reputacji.
 
 📊 Charakterystyka Danych
 
