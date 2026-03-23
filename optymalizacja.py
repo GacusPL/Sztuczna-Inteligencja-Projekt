@@ -72,93 +72,92 @@ def inicjalizuj_pamiec(df, rozmiar_pamieci, budzet):
 
 
 
-def improwizuj_nowe_rozwiazanie(pamiec, hmcr, budzet, dict_wagi, dict_wartosci, wszystkie_gry):
+def improwizuj_nowe_rozwiazanie(pamiec, hmcr, par, budzet, dict_wagi, dict_wartosci, wszystkie_gry):
     """
-    Buduje nowy koszyk gier opierając się na współczynniku HMCR.
+    Buduje nowy koszyk gier opierając się na współczynnikach HMCR oraz PAR (Mutacja).
     """
     nowy_koszyk = []
     waga_calkowita = 0
     wartosc_calkowita = 0
     
-    # Zbieramy wszystkie unikalne gry, które aktualnie znajdują się w pamięci algorytmu (HMS)
     gry_w_pamieci = []
     for rozwiazanie in pamiec:
         gry_w_pamieci.extend(rozwiazanie['wybrane_gry_appid'])
-    gry_w_pamieci = list(set(gry_w_pamieci)) # Usuwamy duplikaty
+    gry_w_pamieci = list(set(gry_w_pamieci))
     
-    # Próbujemy dokładać gry do koszyka, aż skończy się budżet
-    # Używamy licznika pustych prób, żeby nie wejść w nieskończoną pętlę, gdy zostało mało centów
     puste_losowania = 0 
     
     while puste_losowania < 50:
-        r1 = random.random() # Losuje liczbę zmiennoprzecinkową od 0.0 do 1.0
+        r1 = random.random()
         
-        # Jeśli r1 < 0.7 to losujemy z gier, które już są w pamięci (korzystamy z doświadczenia)
+        # 1. Krok HMCR: Czy bierzemy grę z pamięci?
         if r1 < hmcr and len(gry_w_pamieci) > 0:
             kandydat = random.choice(gry_w_pamieci)
-        # W przeciwnym razie losujemy absolutnie dowolną grę z bazy 70 000 tytułów (eksploracja)
+            
+            # 2. Krok PAR (MUTACJA): Sprawdzamy, czy "fałszujemy" nutę
+            r2 = random.random()
+            if r2 < par:
+                # Następuje mutacja: podmieniamy kandydata z pamięci na losowy element z bazy
+                kandydat = random.choice(wszystkie_gry)
+                
+        # Jeśli r1 >= hmcr, od razu losujemy nową grę (Eksploracja)
         else:
             kandydat = random.choice(wszystkie_gry)
             
-        # Oceniamy czy kandydata można dodać do plecaka
+        # Reszta zostaje bez zmian - oceniamy kandydata
         if kandydat not in nowy_koszyk:
             waga_kandydata = dict_wagi.get(kandydat, 0)
             
-            # FITNESS: Sprawdzamy ograniczenie (budżet)
             if waga_calkowita + waga_kandydata <= budzet:
                 nowy_koszyk.append(kandydat)
                 waga_calkowita += waga_kandydata
                 wartosc_calkowita += dict_wartosci.get(kandydat, 0)
-                puste_losowania = 0 # Zresetuj licznik, bo dodaliśmy grę
+                puste_losowania = 0 
             else:
-                puste_losowania += 1 # Gra za droga, zaliczamy pudło
+                puste_losowania += 1 
         else:
-            puste_losowania += 1 # Gra już jest w koszyku, zaliczamy pudło
+            puste_losowania += 1 
             
-    # Zwracamy wyliczony Fitness i skład koszyka
     return {
         'wybrane_gry_appid': nowy_koszyk,
         'calkowita_waga': waga_calkowita,
-        'calkowita_wartosc': wartosc_calkowita # To jest nasz FTnew
+        'calkowita_wartosc': wartosc_calkowita
     }
 
-def uruchom_harmony_search(pamiec, hmcr, iteracje, budzet, dict_wagi, dict_wartosci, wszystkie_gry):
+def uruchom_harmony_search(pamiec, hmcr, par, iteracje, budzet, dict_wagi, dict_wartosci, wszystkie_gry):
     """
-    Główna pętla algorytmu weryfikująca czy FTnew > FTworst
+    Główna pętla z uwzględnieniem parametru PAR.
     """
     for i in range(iteracje):
-        # 1. Stwórz nowe rozwiązanie
-        nowe_rozwiazanie = improwizuj_nowe_rozwiazanie(pamiec, hmcr, budzet, dict_wagi, dict_wartosci, wszystkie_gry)
+        # Przekazujemy parametr par do funkcji improwizującej
+        nowe_rozwiazanie = improwizuj_nowe_rozwiazanie(pamiec, hmcr, par, budzet, dict_wagi, dict_wartosci, wszystkie_gry)
         FT_new = nowe_rozwiazanie['calkowita_wartosc']
         
-        # 2. Znajdź najgorsze rozwiązanie w pamięci (FTworst)
-        # Sortujemy pamięć rosnąco po wartości (najgorsze będzie na indeksie 0)
         pamiec = sorted(pamiec, key=lambda x: x['calkowita_wartosc'])
         FT_worst = pamiec[0]['calkowita_wartosc']
         
-        # 3. Jeśli nowe jest lepsze od najgorszego, dokonaj podmiany!
         if FT_new > FT_worst:
             pamiec[0] = nowe_rozwiazanie
             
-        # Opcjonalny print postępu co np. 100 iteracji
-        if (i + 1) % 100 == 0:
+        if (i + 1) % 1000 == 0:
             najlepsze_obecnie = max(pamiec, key=lambda x: x['calkowita_wartosc'])
             print(f"Iteracja {i+1} | Najlepszy fitness: {najlepsze_obecnie['calkowita_wartosc']}")
             
-    return sorted(pamiec, key=lambda x: x['calkowita_wartosc'], reverse=True) # Zwraca posortowane od najlepszego
+    return sorted(pamiec, key=lambda x: x['calkowita_wartosc'], reverse=True)
+
 
 if __name__ == "__main__":
     # Parametry początkowe
     PLIK_CSV = 'games.csv' 
-    BUDZET = 50000 # 500.00 USD zapisane w centach
+    BUDZET = 50000 # 500.00 USD w centach
     HMS = 20 # Rozmiar pamięci
     HMCR = 0.85 # Szansa na wzięcie gry z pamięci (85%)
-    ITERACJE = 20000 # Ile razy spróbujemy poprawić koszyki
+    PAR = 0.10 # Szansa na mutację gry wziętej z pamięci (10%)
+    ITERACJE = 20000 # Liczba iteracji
     
     print("Wczytywanie i optymalizacja danych...")
     df_gry = przygotuj_dane(PLIK_CSV)
     
-    # SŁOWNIKI - przyśpieszenie działania algorytmu
     id_to_name = dict(zip(df_gry['AppID'], df_gry['Name']))
     id_to_waga = dict(zip(df_gry['AppID'], df_gry['Waga']))
     id_to_wartosc = dict(zip(df_gry['AppID'], df_gry['Wartosc']))
@@ -170,11 +169,12 @@ if __name__ == "__main__":
     najlepsze_startowe = max(pamiec_algorytmu, key=lambda x: x['calkowita_wartosc'])
     print(f"Najlepszy koszyk przed optymalizacją miał wartość: {najlepsze_startowe['calkowita_wartosc']}")
     
-    print(f"\nUruchamiam algorytm Harmony Search (Iteracje = {ITERACJE}, HMCR = {HMCR})...")
-    # TUTAJ JEST GŁÓWNA OPTYMALIZACJA
+    print(f"\nUruchamiam algorytm Harmony Search (Iteracje = {ITERACJE}, HMCR = {HMCR}, PAR = {PAR})...")
+    # Pamiętaj o dodaniu par=PAR w wywołaniu funkcji!
     pamiec_algorytmu = uruchom_harmony_search(
         pamiec=pamiec_algorytmu, 
         hmcr=HMCR, 
+        par=PAR, # NOWY PARAMETR
         iteracje=ITERACJE, 
         budzet=BUDZET, 
         dict_wagi=id_to_waga, 
@@ -182,8 +182,7 @@ if __name__ == "__main__":
         wszystkie_gry=wszystkie_gry
     )
     
-    # Wyświetlamy absolutnego ZWYCIĘZCĘ po optymalizacji
-    najlepsze_rozwiazanie = pamiec_algorytmu[0] # Jest na indeksie 0, bo funkcja zwraca malejąco
+    najlepsze_rozwiazanie = pamiec_algorytmu[0]
     print(f"\n{'='*40}")
     print(f"🏆 NAJLEPSZY KOSZYK PO OPTYMALIZACJI 🏆")
     print(f"Liczba gier: {len(najlepsze_rozwiazanie['wybrane_gry_appid'])}")
