@@ -124,10 +124,11 @@ def improwizuj_nowe_rozwiazanie(pamiec, hmcr, par, budzet, dict_wagi, dict_warto
         'calkowita_wartosc': wartosc_calkowita
     }
 
-def uruchom_harmony_search(pamiec, hmcr, par, iteracje, budzet, dict_wagi, dict_wartosci, wszystkie_gry):
+def uruchom_harmony_search(pamiec, hmcr, par, iteracje, budzet, dict_wagi, dict_wartosci, wszystkie_gry, progress_callback=None):
     """
-    Główna pętla z uwzględnieniem parametru PAR.
+    Główna pętla z uwzględnieniem parametru PAR oraz rejestracją historii fitnessu.
     """
+    historia_fitness = []
     for i in range(iteracje):
         # Przekazujemy parametr par do funkcji improwizującej
         nowe_rozwiazanie = improwizuj_nowe_rozwiazanie(pamiec, hmcr, par, budzet, dict_wagi, dict_wartosci, wszystkie_gry)
@@ -139,11 +140,17 @@ def uruchom_harmony_search(pamiec, hmcr, par, iteracje, budzet, dict_wagi, dict_
         if FT_new > FT_worst:
             pamiec[0] = nowe_rozwiazanie
             
+        if (i + 1) % 100 == 0 or (i + 1) == iteracje:
+            najlepsze_obecnie = max(pamiec, key=lambda x: x['calkowita_wartosc'])
+            historia_fitness.append({'Iteracja': i + 1, 'Fitness': najlepsze_obecnie['calkowita_wartosc']})
+            if progress_callback:
+                progress_callback(i + 1, iteracje, najlepsze_obecnie['calkowita_wartosc'])
+                
         if (i + 1) % 1000 == 0:
             najlepsze_obecnie = max(pamiec, key=lambda x: x['calkowita_wartosc'])
             print(f"Iteracja {i+1} | Najlepszy fitness: {najlepsze_obecnie['calkowita_wartosc']}")
             
-    return sorted(pamiec, key=lambda x: x['calkowita_wartosc'], reverse=True)
+    return sorted(pamiec, key=lambda x: x['calkowita_wartosc'], reverse=True), historia_fitness
 
 
 if __name__ == "__main__":
@@ -152,7 +159,7 @@ if __name__ == "__main__":
     BUDZET = 50000 # 500.00 USD w centach
     HMS = 20 # Rozmiar pamięci
     HMCR = 0.85 # Szansa na wzięcie gry z pamięci (85%)
-    PAR = 0.10 # Szansa na mutację gry wziętej z pamięci (10%)
+    PAR = 0.01 # Szansa na mutację gry wziętej z pamięci (1%)
     ITERACJE = 20000 # Liczba iteracji
     
     print("Wczytywanie i optymalizacja danych...")
@@ -170,11 +177,11 @@ if __name__ == "__main__":
     print(f"Najlepszy koszyk przed optymalizacją miał wartość: {najlepsze_startowe['calkowita_wartosc']}")
     
     print(f"\nUruchamiam algorytm Harmony Search (Iteracje = {ITERACJE}, HMCR = {HMCR}, PAR = {PAR})...")
-    # Pamiętaj o dodaniu par=PAR w wywołaniu funkcji!
-    pamiec_algorytmu = uruchom_harmony_search(
+
+    pamiec_algorytmu, historia_fitness = uruchom_harmony_search(
         pamiec=pamiec_algorytmu, 
         hmcr=HMCR, 
-        par=PAR, # NOWY PARAMETR
+        par=PAR,
         iteracje=ITERACJE, 
         budzet=BUDZET, 
         dict_wagi=id_to_waga, 
