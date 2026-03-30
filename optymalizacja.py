@@ -13,15 +13,13 @@ def przygotuj_dane(sciezka_do_pliku):
     df['Negative'] = pd.to_numeric(df['Negative'], errors='coerce')
     df = df.dropna() 
 
-    # Ponieważ CSV jest przesunięte, sumujemy obie kolumny, 
-    # żeby mieć 100% pewności, że łapiemy prawdziwą liczbę recenzji.
     df['prawdziwe_recenzje'] = df['Positive'] + df['Negative']
     
     # 1. Musi kosztować więcej niż $0 
-    # 2. Rygorystyczny filtr: Tylko gry z ponad 5000 recenzji (odcina śmieci)
+    # 2. Filtr: Tylko gry z ponad 5000 recenzji
     df = df[(df['Price'] > 0) & (df['prawdziwe_recenzje'] >= 5000)]
 
-    # --- PARAMETRY PLECACA ---
+    # --- PARAMETRY PLECAKA ---
     df['Waga'] = (df['Price'] * 100).astype(int)
 
     # Algorytm dostanie ogromną nagrodę punktową za wrzucenie do koszyka większych gier
@@ -94,13 +92,13 @@ def improwizuj_nowe_rozwiazanie(pamiec, hmcr, par, budzet, dict_wagi, dict_warto
         if r1 < hmcr and len(gry_w_pamieci) > 0:
             kandydat = random.choice(gry_w_pamieci)
             
-            # 2. Krok PAR (MUTACJA): Sprawdzamy, czy "fałszujemy" nutę
+            # 2. Krok PAR (MUTACJA)
             r2 = random.random()
             if r2 < par:
                 # Następuje mutacja: podmieniamy kandydata z pamięci na losowy element z bazy
                 kandydat = random.choice(wszystkie_gry)
                 
-        # Jeśli r1 >= hmcr, od razu losujemy nową grę (Eksploracja)
+        # Jeśli r1 >= hmcr, od razu losujemy nową grę
         else:
             kandydat = random.choice(wszystkie_gry)
             
@@ -130,7 +128,7 @@ def uruchom_harmony_search(pamiec, hmcr, par, iteracje, budzet, dict_wagi, dict_
     """
     historia_fitness = []
     for i in range(iteracje):
-        # Przekazujemy parametr par do funkcji improwizującej
+
         nowe_rozwiazanie = improwizuj_nowe_rozwiazanie(pamiec, hmcr, par, budzet, dict_wagi, dict_wartosci, wszystkie_gry)
         FT_new = nowe_rozwiazanie['calkowita_wartosc']
         
